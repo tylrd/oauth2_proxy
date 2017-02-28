@@ -51,7 +51,7 @@ type OAuthProxy struct {
 	OAuthCallbackPath string
 	AuthOnlyPath      string
 
-	redirectUrl         *url.URL // the url to receive requests at
+	redirectURL         *url.URL // the url to receive requests at
 	provider            providers.Provider
 	ProxyPrefix         string
 	RedirectOption	    string
