@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/base64"
+	b64 "encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
