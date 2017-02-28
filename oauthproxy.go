@@ -1,7 +1,7 @@
 package main
 
 import (
-	b64 "encoding/base64"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/18F/hmacauth"
 	"github.com/bitly/oauth2_proxy/cookie"
 	"github.com/bitly/oauth2_proxy/providers"
+	"github.com/18F/hmacauth"
 )
 
 const SignatureHeader = "GAP-Signature"
@@ -51,9 +51,10 @@ type OAuthProxy struct {
 	OAuthCallbackPath string
 	AuthOnlyPath      string
 
-	redirectURL         *url.URL // the url to receive requests at
+	redirectUrl         *url.URL // the url to receive requests at
 	provider            providers.Provider
 	ProxyPrefix         string
+	RedirectOption	    string
 	SignInMessage       string
 	HtpasswdFile        *HtpasswdFile
 	DisplayHtpasswdForm bool
@@ -137,7 +138,7 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 			}
 			log.Printf("mapping path %q => file system %q", path, u.Path)
 			proxy := NewFileServer(path, u.Path)
-			serveMux.Handle(path, &UpstreamProxy{path, proxy, nil})
+			serveMux.Handle(path, &UpstreamProxy{path, proxy})
 		default:
 			panic(fmt.Sprintf("unknown upstream protocol %s", u.Scheme))
 		}
@@ -188,6 +189,7 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 		AuthOnlyPath:      fmt.Sprintf("%s/auth", opts.ProxyPrefix),
 
 		ProxyPrefix:        opts.ProxyPrefix,
+		RedirectOption:	   opts.RedirectOption,
 		provider:           opts.provider,
 		serveMux:           serveMux,
 		redirectURL:        redirectURL,
@@ -256,10 +258,13 @@ func (p *OAuthProxy) MakeCookie(req *http.Request, value string, expiration time
 	if value != "" {
 		value = cookie.SignedValue(p.CookieSeed, p.CookieName, value, now)
 	}
+
+	path := p.RedirectOption
+
 	return &http.Cookie{
 		Name:     p.CookieName,
 		Value:    value,
-		Path:     "/",
+		Path:     path,
 		Domain:   domain,
 		HttpOnly: p.CookieHttpOnly,
 		Secure:   p.CookieSecure,
@@ -336,7 +341,7 @@ func (p *OAuthProxy) SignInPage(rw http.ResponseWriter, req *http.Request, code 
 
 	redirect_url := req.URL.RequestURI()
 	if redirect_url == p.SignInPath {
-		redirect_url = "/"
+		redirect_url = p.RedirectOption
 	}
 
 	t := struct {
@@ -386,7 +391,7 @@ func (p *OAuthProxy) GetRedirect(req *http.Request) (string, error) {
 	redirect := req.FormValue("rd")
 
 	if redirect == "" {
-		redirect = "/"
+		redirect = p.RedirectOption
 	}
 
 	return redirect, err
@@ -448,14 +453,15 @@ func (p *OAuthProxy) SignIn(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (p *OAuthProxy) OAuthStart(rw http.ResponseWriter, req *http.Request) {
-	redirect, err := p.GetRedirect(req)
+func (p *OauthProxy) OauthStart(rw http.ResponseWriter, req *http.Request) {
+	redirectOption, err := p.GetRedirect(req)
 	if err != nil {
 		p.ErrorPage(rw, 500, "Internal Error", err.Error())
 		return
 	}
 	redirectURI := p.GetRedirectURI(req.Host)
-	http.Redirect(rw, req, p.provider.GetLoginURL(redirectURI, redirect), 302)
+	redirectOption = p.RedirectOption
+	http.Redirect(rw, req, p.provider.GetLoginURL(redirectURI, redirectOption), 302)
 }
 
 func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
@@ -481,8 +487,8 @@ func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	redirect := req.Form.Get("state")
-	if !strings.HasPrefix(redirect, "/") {
-		redirect = "/"
+	if !strings.HasPrefix(redirect, p.RedirectOption) {
+		redirect = p.RedirectOption
 	}
 
 	// set cookie, or deny

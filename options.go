@@ -17,7 +17,8 @@ import (
 
 // Configuration Options that can be set by Command Line Flag, or Config File
 type Options struct {
-	ProxyPrefix  string `flag:"proxy-prefix" cfg:"proxy-prefix"`
+	ProxyPrefix  string `flag:"proxy-prefix" cfg:"proxy_prefix"`
+	RedirectOption string `flag:"redirect-option" cfg:"redirect_option"`
 	HttpAddress  string `flag:"http-address" cfg:"http_address"`
 	HttpsAddress string `flag:"https-address" cfg:"https_address"`
 	RedirectURL  string `flag:"redirect-url" cfg:"redirect_url"`
@@ -85,6 +86,7 @@ type SignatureData struct {
 
 func NewOptions() *Options {
 	return &Options{
+		RedirectOption:		 "/",
 		ProxyPrefix:         "/oauth2",
 		HttpAddress:         "127.0.0.1:4180",
 		HttpsAddress:        ":443",
