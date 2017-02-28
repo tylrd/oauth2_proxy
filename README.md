@@ -191,6 +191,7 @@ Usage of oauth2_proxy:
   -profile-url="": Profile access endpoint
   -provider="google": OAuth provider
   -proxy-prefix="/oauth2": the url root path that this proxy should be nested under (e.g. /<oauth2>/sign_in)
+  -redirect-option="/portal": "Redirect to somewhere other than root after authorization (e.g. https://internalapp.yourcompany.com/portal)
   -redeem-url="": Token redemption endpoint
   -redirect-url="": the OAuth Redirect URL. ie: "https://internalapp.yourcompany.com/oauth2/callback"
   -resource="": the resource that is being protected. ie: "https://graph.windows.net". Currently only used in the Azure provider.
