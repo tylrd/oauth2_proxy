@@ -426,7 +426,7 @@ func (p *OAuthProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	case path == p.SignInPath:
 		p.SignIn(rw, req)
 	case path == p.OAuthStartPath:
-		p.OAuthStart(rw, req)
+		p.OauthStart(rw, req)
 	case path == p.OAuthCallbackPath:
 		p.OAuthCallback(rw, req)
 	case path == p.AuthOnlyPath:
@@ -523,7 +523,7 @@ func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
 			"Internal Error", "Internal Error")
 	} else if status == http.StatusForbidden {
 		if p.SkipProviderButton {
-			p.OAuthStart(rw, req)
+			p.OauthStart(rw, req)
 		} else {
 			p.SignInPage(rw, req, http.StatusForbidden)
 		}
