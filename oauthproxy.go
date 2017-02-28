@@ -453,7 +453,7 @@ func (p *OAuthProxy) SignIn(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (p *OauthProxy) OauthStart(rw http.ResponseWriter, req *http.Request) {
+func (p *OAuthProxy) OauthStart(rw http.ResponseWriter, req *http.Request) {
 	redirectOption, err := p.GetRedirect(req)
 	if err != nil {
 		p.ErrorPage(rw, 500, "Internal Error", err.Error())
